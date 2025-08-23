@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 // App route
 app.get('/', (req, res) => {
-    res.sendFile(join(__dirname, 'src/index.html'));
+    res.sendFile(join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/login', (req, res) => {
@@ -41,7 +41,8 @@ app.get('/login', (req, res) => {
 });
 
 // Init server
-server.listen(3000, () => {
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
     console.log("Server up");
 });
 
