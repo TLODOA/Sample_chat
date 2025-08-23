@@ -7,15 +7,16 @@
     <form id="form_message">
         <input id="input_message" autocomplete="off" type="text">
         <button>send</button>
-        <button id="button_connection">disconnect</button>
+        <button id="button_connection">Disconnect</button>
+        <button id="button_erase">clean messages</button>
     </form>
 
     <div id="messages">
+        <p id="output_message_temp"></p>
         <p id="output_message"></p>
     </div>
 
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket=io({
             auth: {
@@ -25,6 +26,8 @@
 
         const INPUT_BOX=document.getElementById("input_message");
         const OUTPUT_BOX=document.getElementById("output_message");
+        const OUTPUT_BOX_TEMP=document.getElementById("output_message_temp");
+
         const form=document.getElementById("form_message");
 
         form.addEventListener('submit', (e)=>{
@@ -34,13 +37,22 @@
             }
 
             socket.emit('chat message', INPUT_BOX.value);
+            OUTPUT_BOX_TEMP.innerHTML = INPUT_BOX.value+'<br>'+OUTPUT_BOX_TEMP.innerHTML;
+
             INPUT_BOX.value='';
         });
 
         //
         socket.on('chat message', (msg, serverOffset) => {
+            OUTPUT_BOX_TEMP.innerHTML="";
             OUTPUT_BOX.innerHTML = msg+'<br>'+OUTPUT_BOX.innerHTML;
+            console.log(serverOffset);
             socket.auth.serverOffset = serverOffset;
+        });
+
+        socket.on('chat delete', () => {
+            OUTPUT_BOX.innerHTML = '';
+            socket.auth.serverOffset = 0;
         });
 
         //
@@ -55,6 +67,16 @@
 
             button_connection.innerHTML='Disconnect';
             socket.connect();
+        });
+
+        //
+        const button_erase=document.getElementById("button_erase");
+        button_erase.addEventListener('click', (e)=>{
+            e.preventDefault();
+
+            OUTPUT_BOX.innerHTML='';
+
+            socket.emit('chat delete');
         });
     </script>
 </body>

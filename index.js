@@ -1,13 +1,20 @@
+// Express
 import express from 'express';
 
+// Things of node
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
+// Socketio
 import { Server } from 'socket.io';
 
+// SQLite
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
+
+// Database
+import { db, db_delete_message, db_add_message } from './private/db.js';
 
 //
 const app = express();
@@ -17,14 +24,9 @@ const io = new Server(server,{
 });
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Database
-const db = await open({
-    filename : 'chat.db',
-    driver : sqlite3.Database
-});
 
 await db.exec(`
-CREATE TABLE IF NOT EXISTS messages (
+CREATE TABLE IF NOT EXISTS message (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_offset TEXT UNIQUE,
     content TEXT
@@ -48,21 +50,23 @@ server.listen(PORT, () => {
 
 // Server operations
 io.on('connection', (socket) => {
+    socket.on('chat delete', async () => {
+        db_delete_message();
+        io.emit('chat delete');
+    });
+
     socket.on('chat message', async (msg) => {
-        let result;
-        try {
-            result=await db.run('INSERT INTO messages (content) VALUES (?)', msg);
-        } catch (e){
+        let result=await db_add_message(msg);
+        if(result==-1)
             return;
-        }
         
         io.emit('chat message', msg, result.lastID);
     });
 
     if(!socket.recovered){
         try{
-            db.each('SELECT id, content FROM messages WHERE id > ?',
-                [socket.handshake.auth.severOffset || 0],
+            db.each('SELECT id, content FROM message WHERE id > ?',
+                [socket.handshake.auth.serverOffset || 0],
                 (_err, row) => {
                     socket.emit('chat message', row.content, row.id);
                 }
