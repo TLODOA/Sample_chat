@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sample chat</title>
+</head>
+<body>
+    <form id="form_message">
+        <input id="input_message" autocomplete="off" type="text">
+        <button>send</button>
+        <button id="button_connection">disconnect</button>
+    </form>
+
+    <div id="messages">
+        <p id="output_message"></p>
+    </div>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <script>
+        const socket=io({
+            auth: {
+                serverOffset: 0
+            }
+        });
+
+        const INPUT_BOX=document.getElementById("input_message");
+        const OUTPUT_BOX=document.getElementById("output_message");
+        const form=document.getElementById("form_message");
+
+        form.addEventListener('submit', (e)=>{
+            e.preventDefault();
+            if(!INPUT_BOX.value){
+                return;
+            }
+
+            socket.emit('chat message', INPUT_BOX.value);
+            INPUT_BOX.value='';
+        });
+
+        //
+        socket.on('chat message', (msg, serverOffset) => {
+            OUTPUT_BOX.innerHTML = msg+'<br>'+OUTPUT_BOX.innerHTML;
+            socket.auth.serverOffset = serverOffset;
+        });
+
+        //
+        const button_connection=document.getElementById("button_connection");
+        button_connection.addEventListener('click', (e)=>{
+            e.preventDefault();
+            if(socket.connected){
+                button_connection.innerHTML='Connect';
+                socket.disconnect();
+                return;
+            }
+
+            button_connection.innerHTML='Disconnect';
+            socket.connect();
+        });
+    </script>
+</body>
+</html>
