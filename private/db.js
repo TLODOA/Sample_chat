@@ -16,13 +16,14 @@ function db_delete_message(){
     });
 }
 
-function db_add_message(msg){
+function db_add_message(msg, client_offset){
     let result
-    try{
-        result=db.run('INSERT INTO message (content) VALUES (?)',msg);
+    // console.log(client_offset);
+    try {
+        result=db.run('INSERT INTO message (content, client_offset) VALUES (?, ?)', msg, client_offset);
     } catch(e){
         console.log("Insert message error");
-        return -1;
+        return result;
     }
 
     return result;

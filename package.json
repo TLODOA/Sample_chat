@@ -1,11 +1,11 @@
 {
   "name":"TLODOA",
   "version":"1.0.0",
-  "main":"index.js",
+  "main":"server.js",
   "type": "module",
 
   "scripts": {
-      "start":"node index.js"
+      "start":"node server.js"
   },
 
   "dependencies": {
